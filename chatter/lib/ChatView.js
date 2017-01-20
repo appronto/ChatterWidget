@@ -10,6 +10,7 @@ chatter.lib.ChatView = function(params) {
         headNode,
         listNode,
         inputNode;
+		
 
 
     var onKeyUp = function(e) {
@@ -17,7 +18,7 @@ chatter.lib.ChatView = function(params) {
             var value = inputNode.value;
 
             if (value) {
-                mx.processor.create({
+                mx.data.create({
                     entity   : chatter.config.enMessage,
                     error    : function(e) {
                         mx.ui.error("Chatter: An error occurred while creating chat message (E1021)");
@@ -27,12 +28,14 @@ chatter.lib.ChatView = function(params) {
 
                         var context = new mendix.lib.MxContext();
 
-                        context.setContext(chatUser.getEntity(), chatUser.getGUID());
-                        context.setContext(msg.getEntity(), msg.getGUID());
+                        context.setContext(chatUser.getEntity(), chatUser.getGuid());
+                        context.setContext(msg.getEntity(), msg.getGuid());
 
-                        mx.processor.action({
-                            actionname : chatter.config.mfPostMessage,
-                            context    : context,
+                        mx.data.action({
+                            params : {
+								actionname : chatter.config.mfPostMessage,
+							},
+							context    : context,
                             error      : function(e) {
                                 mx.ui.error("Chatter: An error occurred while sending chat message (E1022)");
                             },
@@ -82,15 +85,17 @@ chatter.lib.ChatView = function(params) {
         logger.debug("ChatView.getHistory");
 
         var context = new mendix.lib.MxContext();
-        context.setContext(chatUser.getEntity(), chatUser.getGUID());
+        context.setContext(chatUser.getEntity(), chatUser.getGuid());
 
-        mx.processor.action({
-            actionname : chatter.config.mfGetHistory,
+        mx.data.action({
+            params : {
+				actionname : chatter.config.mfGetHistory,
+			},						
             context    : context,
-            callback   : function(response,ioArgs) {
+			callback   : function(response,ioArgs) {
                 var messages = response.actionResult || response;
                 for (var i = 0, msg; msg = messages[i]; i++) {
-                    var obj = msg.id ? msg : mx.processor.setOrRetrieveMxObject(msg);
+                    var obj = msg.id ? msg : mx.data.setOrRetrieveMxObject(msg);
                     self.addMessage(obj, obj.get(chatter.config.atReadMessage), false);
                 }
                 markMessages();
@@ -98,24 +103,25 @@ chatter.lib.ChatView = function(params) {
             }
         });
     };
-
     var markMessages = function(callback) {
         logger.debug("ChatView.markMessages");
-
         if (messages.length) {
             var guids = [];
 
             while (messages.length) {
                 var msg = messages.pop();
-                guids.push("id=" + msg.getGUID());
+                guids.push("id=" + msg.getGuid());
             }
 
-            mx.processor.action({
-                actionname  : chatter.config.mfMarkMessages,
-                applyto     : "selectionset",
-                xpath       : "//" + chatter.config.enMessage,
-                constraints : "[" + guids.join(" or ")  + "]",
-                sort        : [],
+            mx.data.action({
+                 params : {
+					actionname : chatter.config.mfMarkMessages,
+					applyto     : "set",
+					xpath       : "//" + chatter.config.enMessage,
+					constraints : "[" + guids.join(" or ")  + "]",
+					sort        : [],
+                },	
+				
                 error       : function(e) {
                     mx.ui.error("Chatter: An error occurred while marking messages as read (E1024)");
                 },
@@ -141,10 +147,10 @@ chatter.lib.ChatView = function(params) {
     this.startup = function() {
         logger.debug("ChatView.startup");
 
-        mendix.lang.sequence(this, [
+        mendix.lang.sequence([
             buildUI,
             getHistory
-        ]);
+        ], null, this);
     };
 
     this.shutdown = function() {
@@ -174,7 +180,7 @@ chatter.lib.ChatView = function(params) {
 
     this.addMessage = function(msg, history, mark) {
         var $    = mxui.dom,
-            from = msg.get(chatter.config.asUserFrom) == currUser.getGUID() ? currUser : chatUser,
+            from = msg.get(chatter.config.asUserFrom) == currUser.getGuid() ? currUser : chatUser,
             name = $.span({ "class" : "label" }, from.get(chatter.config.atUserCaption).substring(0,10) + ": "),
             item = $.li(name, msg.get(chatter.config.atMsgContent));
 
@@ -197,6 +203,6 @@ chatter.lib.ChatView = function(params) {
     };
 
     this.getGuid = function() {
-        return chatUser.getGUID();
+        return chatUser.getGuid();
     };
 };

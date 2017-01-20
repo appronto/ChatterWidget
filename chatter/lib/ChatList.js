@@ -1,5 +1,6 @@
 dojo.provide("chatter.lib.ChatList");
 
+
 chatter.lib.ChatList = function(params) {
     var self     = this,
         connects = [],
@@ -21,9 +22,9 @@ chatter.lib.ChatList = function(params) {
             offline = [];
 
         for (var i = 0, obj; obj = users[i]; i++) {
-            var user = mx.processor.setOrRetrieveMxObject(obj);
+            var user = mx.data.setOrRetrieveMxObject(obj);
 
-            if (chatSystem.isActive(user.getGUID())) {
+            if (chatSystem.isActive(user.getGuid())) {
                 online.push(user);
             } else {
                 offline.push(user);
@@ -76,7 +77,7 @@ chatter.lib.ChatList = function(params) {
                     
                 for (var i = 0, user; user = users[i]; i++) {
                     var item = $.li({ "class" : i % 2 ? "even" : "odd" }),
-                        guid = user.getGUID(),
+                        guid = user.getGuid(),
                         staticon, msgsicon;
 
                     if (chatSystem.isActive(guid)) {
@@ -175,7 +176,7 @@ chatter.lib.ChatList = function(params) {
     };
 
     var removeNotifications = function(user) {
-        var guid = user.getGUID(); 
+        var guid = user.getGuid(); 
 
         if (guid in notifMap) {
             notifs -= notifMap[guid];
@@ -189,9 +190,10 @@ chatter.lib.ChatList = function(params) {
     this.startup = function() {
         logger.debug("ChatList.startup");
 
-        mendix.lang.sequence(this, [
-            buildUI
-        ]);
+         mendix.lang.sequence([
+           buildUI
+        ], null, this);
+               
     };
 
     this.shutdown = function() {
@@ -207,7 +209,7 @@ chatter.lib.ChatList = function(params) {
     };
 
     this.addNotification = function(user) {
-        var guid = user.getGUID(); 
+        var guid = user.getGuid(); 
 
         if (chatSystem.getCurrentGuid() != guid) {
             if (guid in notifMap) {

@@ -2,7 +2,8 @@ dojo.provide("chatter.ChatSystem");
 dojo.require("chatter.lib.ChatList");
 dojo.require("chatter.lib.ChatView");
 
-mxui.dom.insertCss(dojo.moduleUrl("chatter", "ui/ChatSystem.css"));
+mxui.dom.addCss(dojo.moduleUrl("chatter", "ui/ChatSystem.css"));
+logger.level = logger.DEBUG;
 
 chatter.config = {
     mfUserLogin    : "Chatter.UserLogin",
@@ -86,40 +87,46 @@ chatter.ChatSystem = function(params) {
     var userLogin = function(callback) {
         logger.debug("ChatSystem.userLogin");
 
-        mx.processor.get({
-            microflow  : chatter.config.mfUserLogin,
-            error      : function(e) {
-                mx.ui.error("Chatter: An error occurred while retrieving chat session (E1026)");
-            },
-            callback   : function(objs) {
-                if (objs.length) {
-                    sessionObj = objs[0];
+        mx.data.action(
+		{
+			params : {
+				actionname  : chatter.config.mfUserLogin,
+				applyto : "none"
+			},
+			error      : function(e) {
+				mx.ui.error("Chatter: An error occurred while retrieving chat session (E1026)");
+			},
+			callback   : function(objs) {
+				if (objs.length) {
+					sessionObj = objs[0];
 
-                    mx.processor.get({
-                        guid     : sessionObj.get(chatter.config.asChatSession),
-                        error    : function(e) {
-                            mx.ui.error("Chatter: An error occurred while retrieving chat user (E1025)");
-                        },
-                        callback : function(user) {
-                            userObj = user;
-                        }
-                    });
+					mx.data.get({
+						guid     : sessionObj.get(chatter.config.asChatSession),
+						error    : function(e) {
+							mx.ui.error("Chatter: An error occurred while retrieving chat user (E1025)");
+						},
+						callback : function(user) {
+							userObj = user;
+						}
+					});
 
-                    callback && callback();
-                }
-            }
+					callback && callback();
+				}
+			}
         });
         
         mx.session.logout = function (){
            logger.debug("ChatSystem.userLogout");
            if (sessionObj) {
                 var context = new mendix.lib.MxContext();
-                context.setContext(sessionObj.getEntity(), sessionObj.getGUID());
+                context.setContext(sessionObj.getEntity(), sessionObj.getGuid());
     
-                mx.processor.action({
-                    actionname : chatter.config.mfUserLogout,
-                    context    : context,
-                    error      : function(e) {
+                mx.data.action({
+                    params : {
+						actionname : chatter.config.mfUserLogout                    	
+					},
+					context    : context,	
+					error      : function(e) {
                         logoutFn();
                     },
                     callback   : function() {
@@ -159,7 +166,7 @@ chatter.ChatSystem = function(params) {
                 params : {
                     actionname : chatter.config.mfGetMessages
                 },
-                context : [ sessionObj.getGUID() ]
+                context : [ sessionObj.getGuid() ]
             }),
             error : function(e, ioArgs) {
                 if(ioArgs.xhr.status == 504){
@@ -197,17 +204,17 @@ chatter.ChatSystem = function(params) {
 
                 
                 for (var i = 0, obj; obj = messages[i]; i++) {
-                    var msg  = mx.processor.setOrRetrieveMxObject(obj),
+                    var msg  = mx.data.setOrRetrieveMxObject(obj),
                         from = msg.get(chatter.config.asUserFrom);
                     
-                    mx.processor.get({
-                        guid     : from,
+                    mx.data.get({
+                        guid   : from,
                         error    : function(e) {
                             mx.ui.error("Chatter: An error occurred while retrieving chat user for message (E1020)");   
                         },
                         callback : (function(msg) {
                             return function(user) {
-                                var view = chatViews[user.getGUID()];
+                                var view = chatViews[user.getGuid()];
                                 view && view.addMessage(msg);
                                 chatList.addNotification(user);
                             };
@@ -223,12 +230,12 @@ chatter.ChatSystem = function(params) {
     this.startup = function() {
         logger.debug("ChatSystem.startup");
 
-        mendix.lang.sequence(this, [
+        mendix.lang.sequence([
             addListeners,
             userLogin,
             createList,
             listen
-        ]);
+        ], null, this);
     };
 
     this.getUser = function() {
@@ -246,7 +253,7 @@ chatter.ChatSystem = function(params) {
     this.openView = function(user) {
         logger.debug("ChatSystem.openView");
 
-        var guid = user.getGUID(),
+        var guid = user.getGuid(),
             view = chatViews[guid];
 
         if (!view) {
