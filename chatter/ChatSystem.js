@@ -230,12 +230,17 @@ chatter.ChatSystem = function(params) {
     this.startup = function() {
         logger.debug("ChatSystem.startup");
 
-        mendix.lang.sequence([
+        setTimeout(dojo.hitch(this, function(){
+			mendix.lang.sequence([
             addListeners,
             userLogin,
             createList,
-            listen
+			listen
         ], null, this);
+		}), 500);
+		
+		
+	
     };
 
     this.getUser = function() {
