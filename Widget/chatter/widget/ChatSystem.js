@@ -1,4 +1,5 @@
 console.log("test");
+mx.logout2 = mx.logout;
 // Required module list. Remove unnecessary modules, you can always get them back from the boilerplate.
 define([
     "dojo/_base/declare",
@@ -8,8 +9,9 @@ define([
     "dojo/_base/lang",
     "dojo/json",
     "chatter/widget/ChatList",
-    "chatter/widget/ChatView"
-], function (declare, _WidgetBase,Deferred, all, dojoLang, JSON, ChatList, ChatView) {
+    "chatter/widget/ChatView",
+    "dojo/aspect"
+], function (declare, _WidgetBase,Deferred, all, dojoLang, JSON, ChatList, ChatView, aspect) {
     "use strict";
 
     // Declare widget"s prototype.
@@ -58,7 +60,31 @@ define([
 				this.listen
 			], null, this);
 			}), 500);
-			
+		  
+            
+            // overwrite default logout
+            mx.logout = dojo.hitch(this, function(){
+                
+				this.currReq && this.currReq.cancel();
+                
+                mx.data.action(
+                {
+                    params : {
+                        actionname  : this.config.mfUserLogout,
+                        applyto : "selection",
+                        guids: [this.sessionObj.getGuid()]
+
+                    },
+                    error      : function(e) {
+                        mx.ui.error("Chatter: An error occurred while retrieving chat session (E1026)");
+                    },
+                    callback   : dojo.hitch(this, function(response) {
+                       mx.logout2();
+                    })
+                })
+
+
+            })
         },
 
                 
@@ -71,7 +97,7 @@ define([
 		chatList:null,
 		interval:null,
 		timeout:null,
-	  //  logoutFn = mx.session.logout,
+	    logoutFn : null,
 		currReq:null,
 		sessionObj:null,
 		userObj:null,
@@ -114,6 +140,7 @@ define([
 				this.currReq && this.currReq.cancel();
 			});
 
+            
 			//addListeners = mendix.lang.nullExec;
 			callback && callback();
 		},

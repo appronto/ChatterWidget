@@ -1,9 +1,4 @@
 This is the Chatter module created by Appronto. It's completely free. It's mostly Java and Javascript based. In the /Module folder the Mendix module is included which can be imported in Mendix 7.2 and up. The /Widget folder contains the source of the widget and a release MPK file. 
 
-Please follow the installation instructions from the Mendix app store. 
+Please follow the installation instructions from the Mendix app store. If you're updating please check the documentation again for recommended values for the constants. 
 
-Known issues as of 3 sept 2017:
-1. When stopping your application all message treads will be interrupted. This results in an error in your log, this has no impact. To fix this the module needs a Before Shutdown microflow to kill all the running message threads (microflow: getMessages)
-2. When signing out Mendix can't remove the session of the user right away because there is a long running microflow (getMessages) running for the session in the background. This will result in this warning in your log: "Failed to remove session '2ac502ed-2bbb-417c-9c00-ef1ef376d611' for user 'MxAdmin' because actions are still running for this session. Client access has been disabled. Session will be attempted to be removed again in 300 seconds."
-
-However the microflow getMessages will be interrupted after x seconds, where x equals the value of the ServerTimeOutInSeconds seconds. Once the getMessages is interrupted, Mendix will try to remove the session again (about 5 minutes after the first try). Now the session get succesfully removed. If your session doesn't get removed fast enough change your ClusterManager settings (see Mendix custom runtime settings). For example put 12000 MS into ClusterManagerActionInterval runtime setting and your session will be removed pretty quickly after the user signs out. 
