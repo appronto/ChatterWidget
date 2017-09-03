@@ -2,7 +2,7 @@
 <package xmlns="http://www.mendix.com/package/1.0/">
 	<clientModule name="chatter" version="0.1" xmlns="http://www.mendix.com/clientModule/1.0/">
 		<widgetFiles>
-            	<widgetFile path="chatter/widget/Chatter.xml"/>
+            	<widgetFile path="chatter/Chatter.xml"/>
 		</widgetFiles>
 		<files>
 			<file path="chatter/"/>

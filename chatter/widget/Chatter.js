@@ -1,17 +1,39 @@
-dojo.provide("chatter.widget.Chatter");
-dojo.require("chatter.ChatSystem");
+define([
+    "dojo/_base/declare",
+    "mxui/widget/_WidgetBase",
+    "dojo/Deferred",
+    "dojo/promise/all",
+    "dojo/_base/lang",
+    "dojo/json",
+	"chatter/widget/ChatSystem", 
+    "mxui/dom"
+], function (declare, _WidgetBase,Deferred, all, dojoLang, JSON, ChatSystem, mxDom) {
+    "use strict";
 
-dojo.declare("chatter.widget.Chatter", null, {
-    caption          : "",
-    uListRefreshTime : "",
-	
-    constructor : function(params) {
-        if(dojo.isIE <= 7){ 
-            mx.ui.info("Chat function is currently not supported in this browser.", {modal:false})
-        }
-        else if (!window.chatSystem) {
-            chatSystem = new chatter.ChatSystem(params);
-            chatSystem.startup();
-        }
-    }
+    // Declare widget"s prototype.
+    return declare("chatter.widget.Chatter", [_WidgetBase], {
+		
+		caption          : "",
+		uListRefreshTime : "",
+		
+		
+		constructor: function() {
+            window.logger.level(window.logger.ALL);
+        },
+
+        // dijit._WidgetBase.postCreate is called after constructing the widget. Implement to do extra setup work.
+        startup: function() {
+            console.log("chatter startup ");
+			if (!window.chatSystem) {
+                mxDom.addCss("widgets/chatter/ui/ChatSystem.css"); 
+                var chatSystem = new ChatSystem({caption: this.caption, uListRefreshTime: this.uListRefreshTime});
+                chatSystem.startup();
+			}
+            
+		}
+			
+	});
+
 });
+
+require(["chatter/widget/Chatter"]);
